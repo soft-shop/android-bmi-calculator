@@ -1,0 +1,33 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo Install started on `date`
+      - apt-add-repository ppa:brightbox/ruby-ng
+      - apt-get update -y
+      - apt-get install -y maven
+      - apt-get install -y ruby2.3
+  pre_build:
+    commands:
+      - echo y | android update sdk --no-ui --all --filter tool,extra-android-m2repository,extra-android-support,extra-google-google_play_services,extra-google-m2repository,android-23
+      - echo y | android update sdk --no-ui --all --filter build-tools-23.0.3
+      - gem install bundler
+      - echo y | bundle install
+  build:
+    commands:
+      - echo Build started on `date`
+      - cd bmi-calc-app
+      - ./gradlew --debug --stacktrace build
+      - cd ..
+      - cd mobile-tests
+      - mvn clean package -DskipTests
+      - cd ..
+      - ruby runtest.rb
+  post_build:
+    commands:
+      - echo Build completed on `date`
+artifacts:
+  files:
+    - bmi-calc-app/app/build/outputs/apk/app-debug.apk
+  discard-paths: yes
